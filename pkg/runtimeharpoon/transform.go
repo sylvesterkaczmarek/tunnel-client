@@ -1,6 +1,7 @@
 package runtimeharpoon
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -125,7 +126,9 @@ func transformJSONBody(body []byte, rewriter *urlRewriter) ([]byte, bool) {
 	// Intentionally rely on json unmarshal/marshal to avoid maintaining a custom
 	// JSON tokenizer/parser in Harpoon.
 	var payload any
-	if err := json.Unmarshal(body, &payload); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	decoder.UseNumber()
+	if err := decoder.Decode(&payload); err != nil {
 		return body, false
 	}
 	updated, changed := rewriteJSONValue(payload, rewriter, "")
